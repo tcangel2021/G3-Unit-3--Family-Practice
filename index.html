@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Members Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #FF5733;
+            --secondary: #FFC300;
+            --success: #4ade80;
+            --danger: #fb7185;
+            --text-dark: #334155;
+        }
+
+        body {
+            font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none; 
+        }
+
+        #game-container {
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 20px 0px rgba(0,0,0,0.2);
+            width: 95%;
+            max-width: 900px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            border: 8px solid #333;
+            user-select: none;
+        }
+
+        h1 {
+            color: var(--text-dark);
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 0px #ddd;
+        }
+
+        #image-container {
+            margin: 0 auto;
+            width: 100%;
+            max-width: 450px;
+            height: 300px;
+            border-radius: 25px;
+            overflow: hidden;
+            border: 6px solid #f1f5f9;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #question-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        #options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .bubble-btn {
+            background-color: #f1f5f9;
+            border: 5px solid #333;
+            border-radius: 25px;
+            padding: 15px;
+            font-size: 2rem;
+            font-family: inherit;
+            font-weight: bold;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 8px 0px #94a3b8;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .bubble-btn:nth-child(1) { background-color: #ff9999; }
+        .bubble-btn:nth-child(2) { background-color: #99ccff; }
+        .bubble-btn:nth-child(3) { background-color: #ffff99; }
+        .bubble-btn:nth-child(4) { background-color: #99ff99; }
+
+        .bubble-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0px #64748b;
+        }
+
+        .bubble-btn.correct {
+            background-color: var(--success) !important;
+            color: white !important;
+            animation: jump 0.4s ease;
+        }
+
+        #feedback-message {
+            height: 80px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .yahoo-text {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 4rem;
+            background: linear-gradient(to bottom, #FFC300, #FF5733);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(4px 4px 0px #333);
+            animation: bounce 0.5s infinite alternate, float 2s ease-in-out infinite;
+            letter-spacing: 3px;
+        }
+
+        .try-again-text {
+            font-weight: bold;
+            font-size: 2rem;
+            color: var(--danger);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            font-size: 1.3rem;
+            font-family: inherit;
+            border: 4px solid #333;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #eee;
+            box-shadow: 0 5px 0 #999;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #next-btn {
+            background-color: #4ade80;
+            color: white;
+            display: none;
+            box-shadow: 0 5px 0 #16a34a;
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.2s ease-in-out 2;
+            background-color: #666 !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="quiz-screen">
+            <h1 id="question-title">Who is this?</h1>
+            
+            <div id="image-container">
+                <img id="question-image" src="" alt="Family Member">
+            </div>
+
+            <div id="options-container">
+                <button class="bubble-btn" ontouchstart="" onclick="checkAnswer(0)"></button>
+                <button class="bubble-btn" ontouchstart="" onclick="checkAnswer(1)"></button>
+                <button class="bubble-btn" ontouchstart="" onclick="checkAnswer(2)"></button>
+                <button class="bubble-btn" ontouchstart="" onclick="checkAnswer(3)"></button>
+            </div>
+
+            <div id="feedback-message"></div>
+
+            <div class="controls">
+                <button id="reveal-btn" class="control-btn" ontouchstart="" onclick="revealAnswer()">💡 Help!</button>
+                <button id="next-btn" class="control-btn" ontouchstart="" onclick="nextQuestion()">Next! ➡️</button>
+            </div>
+        </div>
+
+        <div id="end-screen" style="display:none;">
+            <h2 style="font-size: 3.5rem; font-family: 'Luckiest Guy'; color: #FF5733; margin-bottom: 20px;">COURSE CLEAR! 🚩</h2>
+            <button class="control-btn" style="background: #FF5733; color: white; padding: 20px 40px; font-size: 2rem;" ontouchstart="" onclick="restartGame()">Play Again!</button>
+        </div>
+    </div>
+
+    <script>
+        const originalData = [
+            { id: "father", image: "https://png.pngtree.com/png-vector/20240129/ourmid/pngtree-father-and-daughter-clip-art-png-image_11568293.png", correct: "father", options: ["mother", "brother", "sister"] },
+            { id: "mother", image: "https://png.pngtree.com/png-clipart/20250218/original/pngtree-happy-mother-s-day-png-image_20461481.png", correct: "mother", options: ["sister", "baby", "brother"] },
+            { id: "grandfather", image: "https://i.fbcd.co/products/resized/resized-750-500/788f07edbbbabf82a2d374711b08d7a3ba7effe5a4ea2eb832e97e0f9f99ad6d.jpg", correct: "grandfather", options: ["brother", "father", "baby"] },
+            { id: "grandmother", image: "https://cdn.vectorstock.com/i/1000v/87/56/a-beautiful-grandmother-vector-1658756.jpg", correct: "grandmother", options: ["baby", "mother", "sister"] },
+            { id: "grandpa", image: "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL2pvYjk2Mi0xNjNhLnBuZw.png", correct: "grandpa", options: ["brother", "father", "family"] },
+            { id: "grandma", image: "https://thumbs.dreamstime.com/b/grandmother-old-woman-cute-grandma-elderly-lady-face-portrait-beautiful-elder-granny-elegant-senior-person-character-older-mother-399819065.jpg", correct: "grandma", options: ["mother", "sister", "family"] },
+            { id: "brother", image: "https://img.freepik.com/premium-photo/cartoon-illustration-smiling-black-teenage-boy-wearing-black-jacket_1282444-269519.jpg", correct: "brother", options: ["father", "grandpa", "baby"] },
+            { id: "sister", image: "https://img.freepik.com/premium-photo/happy-teenage-girl-cartoon-character_1029473-68834.jpg", correct: "sister", options: ["mother", "grandma", "baby"] },
+            { id: "baby", image: "https://png.pngtree.com/png-clipart/20250126/original/pngtree-cheerful-fun-cartoon-baby-clipart-illustration-png-image_20044466.png", correct: "baby", options: ["brother", "sister", "family"] },
+            { id: "family", image: "https://png.pngtree.com/png-vector/20250118/ourmid/pngtree-happy-family-clipart-cute-cartoon-parents-hugging-children-illustration-png-image_15253024.png", correct: "family", options: ["mother", "father", "brother"] }
+        ];
+
+        let shuffledQuiz = [];
+        let currentIndex = 0;
+        let canClick = true;
+        let currentOptions = [];
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function playLevelUpSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; 
+            notes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, now + (index * 0.08));
+                gain.gain.setValueAtTime(0.1, now + (index * 0.08));
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + (index * 0.08) + 0.3);
+                osc.start(now + (index * 0.08));
+                osc.stop(now + (index * 0.08) + 0.3);
+            });
+        }
+
+        function playVictorySound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            // Upbeat Victory Fanfare: C4, G4, C5, E5, G5, C6
+            const victoryNotes = [261.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+            victoryNotes.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                const time = now + (index * 0.15);
+                osc.frequency.setValueAtTime(freq, time);
+                gain.gain.setValueAtTime(0.1, time);
+                gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.4);
+                osc.start(time);
+                osc.stop(time + 0.4);
+            });
+        }
+
+        function playWrongSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#FF5733', '#FFC300', '#4ade80', '#60a5fa']
+            });
+        }
+
+        function loadQuestion() {
+            canClick = true;
+            const data = shuffledQuiz[currentIndex];
+            currentOptions = shuffleArray([data.correct, ...data.options]);
+            
+            document.getElementById('question-image').src = data.image;
+            document.getElementById('feedback-message').innerHTML = "";
+            document.getElementById('next-btn').style.display = "none";
+            
+            const buttons = document.querySelectorAll('.bubble-btn');
+            buttons.forEach((btn, i) => {
+                btn.textContent = currentOptions[i];
+                btn.className = 'bubble-btn';
+                btn.disabled = false;
+                btn.style.boxShadow = "0 8px 0px #94a3b8";
+                btn.style.borderColor = "#333";
+            });
+        }
+
+        function checkAnswer(idx) {
+            if (!canClick) return;
+            const data = shuffledQuiz[currentIndex];
+            const btn = document.querySelectorAll('.bubble-btn')[idx];
+
+            if (currentOptions[idx] === data.correct) {
+                canClick = false;
+                btn.classList.add('correct');
+                document.getElementById('feedback-message').innerHTML = '<span class="yahoo-text">YAHOO!</span>';
+                document.getElementById('next-btn').style.display = "block";
+                
+                playLevelUpSound();
+                triggerConfetti();
+                document.querySelectorAll('.bubble-btn').forEach(b => { if(b !== btn) b.disabled = true; });
+            } else {
+                btn.classList.add('shake');
+                document.getElementById('feedback-message').innerHTML = '<span class="try-again-text">Mamma Mia! ❌</span>';
+                playWrongSound();
+                setTimeout(() => btn.classList.remove('shake'), 400);
+            }
+        }
+
+        function revealAnswer() {
+            if (!canClick) return;
+            const data = shuffledQuiz[currentIndex];
+            document.querySelectorAll('.bubble-btn').forEach(btn => {
+                if (btn.textContent === data.correct) {
+                    btn.style.boxShadow = "0 0 30px #FFD700";
+                    btn.style.borderColor = "#FFD700";
+                }
+            });
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < shuffledQuiz.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('quiz-screen').style.display = 'none';
+                document.getElementById('end-screen').style.display = 'block';
+                playVictorySound();
+                confetti({ particleCount: 250, spread: 160, origin: { y: 0.6 } });
+            }
+        }
+
+        function restartGame() {
+            currentIndex = 0;
+            shuffledQuiz = shuffleArray([...originalData]);
+            document.getElementById('quiz-screen').style.display = 'block';
+            document.getElementById('end-screen').style.display = 'none';
+            loadQuestion();
+        }
+
+        window.onload = () => {
+            shuffledQuiz = shuffleArray([...originalData]);
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>
